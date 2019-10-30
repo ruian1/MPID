@@ -1,5 +1,6 @@
 import numpy as np
 from larcv import larcv
+import random
 
 import ROOT
 from ROOT import TChain
@@ -13,23 +14,50 @@ def image_modify(img):
     return img_mod
 
 class MPID_Dataset(Dataset):
-    def __init__(self, input_file, mctruth_tree, image_tree, device):
+    def __init__(self, input_file, mctruth_tree, image_tree, device, plane=2,augment=False, verbose=False):
+        self.plane=plane
+        self.augment=augment
+        self.verbose=verbose
         self.particle_mctruth_chain = TChain(mctruth_tree)
         self.particle_mctruth_chain.AddFile(input_file)
 
         self.particle_image_chain = TChain(image_tree)
         self.particle_image_chain.AddFile(input_file)
-        self.device=device
+        if (device):
+            self.device=device
+        else:
+            self.device="cpu"
         
-    def __getitem__(self, ENTRY, plane=2):        
+    def __getitem__(self, ENTRY):
         # Reading Image
+
+        print ("open ENTRY @ {}".format(ENTRY))
+
         self.particle_image_chain.GetEntry(ENTRY)
         self.this_image_cpp_object = self.particle_image_chain.sparse2d_wire_branch
-        self.this_image=larcv.as_ndarray(self.this_image_cpp_object.as_vector()[plane])
+        self.this_image=larcv.as_ndarray(self.this_image_cpp_object.as_vector()[self.plane])
         # Image Thresholding
         self.this_image=image_modify(self.this_image)
-        self.this_image=torch.tensor(self.this_image, device=self.device).float()
 
+        #print (self.this_image)
+        #print ("sum, ")
+        #if (np.sum(self.this_image) < 9000):
+        #    ENTRY+
+        
+        if self.augment:
+            if random.randint(0, 1):
+            #if True:
+                if (self.verbose): print ("flipped")
+                self.this_image = np.fliplr(self.this_image)
+            if random.randint(0, 1):
+            #if True:
+                if (self.verbose): print ("transposed")
+                self.this_image = self.this_image.transpose(1,0)
+        self.this_image = torch.from_numpy(self.this_image.copy())
+#        self.this_image=torch.tensor(self.this_image, device=self.device).float()
+
+        self.this_image=self.this_image.clone().detach()
+        
         # Reading Truth Info
         self.particle_mctruth_chain.GetEntry(ENTRY)
         self.this_mctruth_cpp_object = self.particle_mctruth_chain.particle_mctruth_branch
