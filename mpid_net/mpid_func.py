@@ -8,13 +8,13 @@ def make_train_step(model, loss_fn, optimizer):
     def train_step(x, y):
 
         model.train()
-        
+        print ("Model training status in train_step, ", model.training)
         # Makes predictions
         y_prediction = model(x)
         
-        score = F.sigmoid(y_prediction)
+        score = torch.sigmoid(y_prediction)
 
-        print (score, y)
+        #print (score, y)
                 
         # Computes loss
         loss = loss_fn(y_prediction, y)
@@ -38,6 +38,7 @@ def make_test_step(model, test_loader, loss_fn, optimizer):
     def test_step(test_loader, train_device):
         # Sets model to TRAIN mode
         model.eval()
+        print ("Model training status in test_step, ", model.training)
         tot_loss = 0
         ctr = 0
         for batch_idx, (x_batch, y_batch) in enumerate(test_loader):
@@ -78,7 +79,7 @@ def validation(model, test_loader, batch_size, device, event_nums):
 
         ones = torch.ones(batch_size, 5).cuda()
         zeros = torch.zeros(batch_size, 5).cuda()
-        y_prediction=torch.where(y_prediction >=0.5, ones, zeros)
+        y_prediction=torch.where(y_prediction >0.5, ones, zeros)
         
         predicted += torch.sum(y_truth.eq(y_prediction).float()).cpu().numpy()
         total += batch_size * 5

@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 
 def image_modify(img):
     img_mod = np.where(img<10,    0,img)
-    img_mod = np.where(img>500, 500,img)
+    img_mod = np.where(img>500, 500,img_mod)
     return img_mod
 
 class MPID_Dataset(Dataset):
@@ -31,7 +31,7 @@ class MPID_Dataset(Dataset):
     def __getitem__(self, ENTRY):
         # Reading Image
 
-        print ("open ENTRY @ {}".format(ENTRY))
+        #print ("open ENTRY @ {}".format(ENTRY))
 
         self.particle_image_chain.GetEntry(ENTRY)
         self.this_image_cpp_object = self.particle_image_chain.sparse2d_wire_branch
@@ -47,11 +47,11 @@ class MPID_Dataset(Dataset):
         if self.augment:
             if random.randint(0, 1):
             #if True:
-                if (self.verbose): print ("flipped")
+                #if (self.verbose): print ("flipped")
                 self.this_image = np.fliplr(self.this_image)
             if random.randint(0, 1):
             #if True:
-                if (self.verbose): print ("transposed")
+                #if (self.verbose): print ("transposed")
                 self.this_image = self.this_image.transpose(1,0)
         self.this_image = torch.from_numpy(self.this_image.copy())
 #        self.this_image=torch.tensor(self.this_image, device=self.device).float()
@@ -74,6 +74,7 @@ class MPID_Dataset(Dataset):
                 self.this_mctruth[3]=1
             if (particle.pdg_code()==2212):
                 self.this_mctruth[4]=1
+                                
         return (self.this_image, self.this_mctruth)
 
     def __len__(self):

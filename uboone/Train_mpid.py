@@ -49,14 +49,13 @@ train_device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 # Training data
-#train_file = "/scratch/ruian/training_data/MPID/larcv2/train.root"
-train_file = "/scratch/ruian/training_data/MPID/larcv2/train_normal/larcv_7e19963d-1018-42b5-940c-48489454fa1e.root"
+train_file = "/scratch/ruian/training_data/MPID/larcv2/train.root"
+#train_file = "/scratch/ruian/training_data/MPID/larcv2/train_normal/larcv_7e19963d-1018-42b5-940c-48489454fa1e.root"
 train_data = mpid_data.MPID_Dataset(train_file, "particle_mctruth_tree", "sparse2d_wire_tree", train_device, plane=cfg.plane, augment=cfg.augment)
 train_loader = DataLoader(dataset=train_data, batch_size=cfg.batch_size_train, shuffle=True)
 
 # Test data
-#test_file = "/scratch/ruian/training_data/MPID/larcv2/test.root"
-test_file = train_file
+test_file = "/scratch/ruian/training_data/MPID/larcv2/test.root"
 test_data = mpid_data.MPID_Dataset(test_file, "particle_mctruth_tree", "sparse2d_wire_tree", train_device, plane=cfg.plane)
 test_loader = DataLoader(dataset=test_data, batch_size=cfg.batch_size_test, shuffle=True)
 
@@ -69,7 +68,7 @@ mpid.cuda()
 loss_fn = nn.BCEWithLogitsLoss()
 
 
-optimizer = optim.Adam(mpid.parameters())#, lr=cfg.learning_rate)#, weight_decay=0.001)
+optimizer  = optim.Adam(mpid.parameters(), lr=cfg.learning_rate)#, weight_decay=0.001)
 train_step = mpid_func.make_train_step(mpid, loss_fn, optimizer)
 test_step  = mpid_func.make_test_step(mpid, test_loader, loss_fn, optimizer)
 
@@ -83,10 +82,12 @@ test_accuracies =[]
 EPOCHS = cfg.EPOCHS
 
 fout = open('training_csvs/production_{}_{}.csv'.format(timestr(), title), 'w')
-fout.write('train_accu,test_accu,train_loss,test_loss')
+fout.write('train_accu,test_accu,train_loss,test_loss,epoch,step')
 fout.write('\n')
 
 print ("Start training process................")
+
+step=0
 
 for epoch in range(EPOCHS):
     print ("\n")
@@ -96,7 +97,7 @@ for epoch in range(EPOCHS):
         # the dataset "lives" in the CPU, so do our mini-batches
         # therefore, we need to send those mini-batches to the
         # device where the model "lives"
-        print (" @{}th epoch, @ batch_id {}".format(epoch+1, batch_idx))
+        print (" @{}th epoch, @ batch_id {}".format(epoch, batch_idx))
         
         x_batch = x_batch.to(train_device).view((-1,1,512,512))
         y_batch = y_batch.to(train_device)
@@ -105,7 +106,7 @@ for epoch in range(EPOCHS):
         train_losses.append(loss)
             
         print('\r Train Epoch: {}/{} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-            epoch+1,
+            epoch,
             EPOCHS,
             batch_idx * len(x_batch), 
             len(train_loader.dataset),
@@ -113,14 +114,15 @@ for epoch in range(EPOCHS):
             loss), 
             end='')
 
-        '''
-        if (batch_idx % cfg.test_every_step == 1 and cfg.run_test):
-            torch.save(mpid.state_dict(), "/scratch/ruian/MPID_pytorch/weights/mpid_model_{}_{}_{}_{}.pwf".format(timestr(), epoch+1, batch_idx, title))
 
-            print ("Start eval on test sample.......@epoch..{}.@batch..{}".format(epoch+1, batch_idx))
+        if (batch_idx % cfg.test_every_step == 1 and cfg.run_test):
+            if (cfg.save_weights):
+                torch.save(mpid.state_dict(), "/scratch/ruian/MPID_pytorch/weights/mpid_model_{}_epoch_{}_batch_id_{}_title_{}_step_{}.pwf".format(timestr(), epoch, batch_idx, title, step))
+
+            print ("Start eval on test sample.......@step..{}..@epoch..{}..@batch..{}".format(step,epoch, batch_idx))
             test_accuracy = mpid_func.validation(mpid, test_loader, cfg.batch_size_test, train_device, event_nums=cfg.test_events_nums)
             print ("Test Accuray {}".format(test_accuracy))
-            print ("Start eval on training sample...@epoch..{}.@batch..{}".format(epoch+1, batch_idx))
+            print ("Start eval on training sample...@epoch..{}.@batch..{}".format(epoch, batch_idx))
             train_accuracy = mpid_func.validation(mpid, train_loader, cfg.batch_size_train, train_device, event_nums=cfg.test_events_nums)
             print ("Train Accuray {}".format(train_accuracy))
             test_loss= test_step(test_loader, train_device)
@@ -128,7 +130,10 @@ for epoch in range(EPOCHS):
             fout.write("%f,"%train_accuracy)        
             fout.write("%f,"%test_accuracy)
             fout.write("%f,"%loss)
-            fout.write("%f"%test_loss)
+            fout.write("%f,"%test_loss)
+            fout.write("%f,"%epoch)
+            fout.write("%f"%step)
+
             fout.write("\n")
-           ''' 
+        step+=1
 fout.close()
