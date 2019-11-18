@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 import os, sys, gc
 import ROOT
@@ -197,15 +197,15 @@ def main(IMAGE_FILE,VTX_FILE,OUT_DIR,CFG):
                 else:
                     score_int_v = nn.Sigmoid()(mpid(img_int_arr)).cpu().detach().numpy()[0]
 
+                '''
                 #Plot the image from pgraph
-
                 fig, (ax1,ax2) = plt.subplots(nrows=1, ncols=2, figsize = (18, 6))
 
-                ax1.imshow(image_modify(img_pix,cfg).reshape(512,512))
-                ax2.imshow(image_modify(img_int,cfg).reshape(512,512))
+                ax1.imshow(image_modify(img_pix,cfg).reshape(512,512), cmap='jet')
+                ax2.imshow(image_modify(img_int,cfg).reshape(512,512), cmap='jet')
                 
                 plt.savefig("out/image/%i_%i_%i_%i_graph_plane_%i"%(ev_pix.run(), ev_pix.subrun(), ev_pix.event(), ix, plane))
-                    
+                '''
                 print 'pix scores are ',score_pix_v
                 print 'int scores are ',score_int_v
 
