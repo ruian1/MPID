@@ -1,4 +1,4 @@
-1;95;0c#import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 import os, sys, gc
 import ROOT
@@ -68,9 +68,10 @@ def main(IMAGE_FILE,VTX_FILE,OUT_DIR,CFG):
     mpid = mpid_net.MPID()
     #mpid.cuda()
 
-    #weight_file = ""
-    #exec("weight_file = cfg.weight_file_pid%d" % plane)
-    weight_file= "../weights/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1811_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55954.pwf"
+    weight_file = ""
+    plane=2
+    exec("weight_file = cfg.weight_file_mpid_%i" % plane)
+#    weight_file= "../weights/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1811_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55954.pwf"
     mpid.load_state_dict(torch.load(weight_file, map_location=train_device))
     mpid.eval()
     
