@@ -1,4 +1,4 @@
-#import matplotlib.pyplot as plt
+1;95;0c#import matplotlib.pyplot as plt
 
 import os, sys, gc
 import ROOT
@@ -52,7 +52,7 @@ def main(IMAGE_FILE,VTX_FILE,OUT_DIR,CFG):
     rd = ROOTData()
 
     NUM = int(os.path.basename(VTX_FILE).split(".")[0].split("_")[-1])
-    FOUT = os.path.join(OUT_DIR,"multipid_out_%04d.root" % NUM)
+    FOUT = os.path.join(OUT_DIR,"multipid_out_%04d_pytorch.root" % NUM)
     tfile = ROOT.TFile.Open(FOUT,"RECREATE")
     tfile.cd()
     print "OPEN %s"%FOUT
