@@ -6,8 +6,8 @@ from lib.config import config_loader
 CFG = os.path.join("../cfg","inference_config.cfg")
 cfg  = config_loader(CFG)
 
-#os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"]="9"
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]=cfg.GPUID
 
 print(sys.argv)
 blah = sys.argv[1]
@@ -15,15 +15,25 @@ blah = sys.argv[1]
 #test_file = "/scratch/ruian/training_data/MPID/larcv2/1e1p.root"
 #test_file = "/scratch/ruian/training_data/MPID/larcv2/1mu1p.root"
 #test_file = "/scratch/ruian/training_data/MPID/larcv2/all_1e1p.root"
-test_file = "/scratch/ruian/training_data/MPID/larcv2/all_1mu1p.root"
+#test_file = "/scratch/ruian/training_data/MPID/larcv2/all_1mu1p.root"
 #test_file = "/scratch/ruian/training_data/MPID/larcv2/test.root"
-#test_file = "/scratch/ruian/training_data/MPID/larcv2/train.root"
+test_file = "/scratch/ruian/training_data/MPID/larcv2/train.root"
+
+#weight_file="../weights/mpid_model_20191115-09_19_AM_epoch_40_batch_id_701_title_0.001_AG_GN_final_step_75381.pwf"
+#weight_file="../weights/mpid_model_20191115-09_25_AM_epoch_40_batch_id_1401_title_0.001_AG_GN_final_step_76081.pwf"
+#weight_file="../weights/mpid_model_20191115-08_07_AM_epoch_36_batch_id_1_title_0.001_AG_GN_final_step_67213.pwf"
+#weight_file="../weights/mpid_model_20191115-08_07_AM_epoch_36_batch_id_11_title_0.001_AG_GN_final_step_67223.pwf"
+#weight_file="../weights/mpid_model_20191115-08_05_AM_epoch_35_batch_id_1731_title_0.001_AG_GN_final_step_67076.pwf"
+#weight_file="../weights/mpid_model_20191115-08_06_AM_epoch_35_batch_id_1831_title_0.001_AG_GN_final_step_67176.pwf"
+
+#weight_file="../weights/saved/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1831_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55974.pwf"
+weight_file="../weights/saved/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1811_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55954.pwf"
 
 blah+='_'
 blah+=test_file.split('.')[0].split('/')[-1]
 
 fout = open('inference_csvs/inference_{}.csv'.format(blah), 'w')
-fout.write('entry,label0,label1,label2,label3,label4,score00,score01,score02,score03,score04,eng_ini0,eng_ini1,eng_ini2,eng_ini3,eng_ini4')
+fout.write('entry,label0,label1,label2,label3,label4,score00,score01,score02,score03,score04,eng_ini0,eng_ini1,eng_ini2,eng_ini3,eng_ini4,multiplicity')
 fout.write('\n')
 
 
@@ -63,16 +73,15 @@ test_loader = DataLoader(dataset=test_data, batch_size= 1 , shuffle=False)
 mpid = mpid_net.MPID()
 mpid.cuda()
 
-#weight_file= "../weights/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1831_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55974.pwf"
-
-weight_file= "../weights/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1811_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55954.pwf"
-
 mpid.load_state_dict(torch.load(weight_file, map_location=train_device))
 
 mpid.eval()
 
-entry_start=5
+#entry_start=5
 #for ENTRY in xrange(entry_start, entry_start + 5):
+
+
+print ("Finish loading trained MPID network, now looping over all events...")
 for ENTRY in xrange(test_data.__len__()):
 
     truth_lable = test_data[ENTRY][1].cpu()
@@ -80,13 +89,16 @@ for ENTRY in xrange(test_data.__len__()):
     input_image = test_data[ENTRY][0].view(-1,1,512,512)
 
     eng_ini = np.zeros(5)
-    
+
+    score = torch.zeros([5])
+
+    '''
     if (input_image.sum().cpu() < 100):
         score = torch.zeros([5])
     else:
         score = nn.Sigmoid()(mpid(input_image.cuda())).cpu().detach().numpy()[0]
         #print (score)
-        
+    '''
     fout.write("{},".format(ENTRY))
     for each in truth_lable:
         fout.write("{:d},".format(int(each)))
@@ -96,24 +108,34 @@ for ENTRY in xrange(test_data.__len__()):
 
     particle_mctruth_chain.GetEntry(ENTRY)
     mctruth_cpp_object = particle_mctruth_chain.particle_mctruth_branch
+
+    #savig largest particle energy deposition
+    multiplicity=0
     for particle in mctruth_cpp_object.as_vector():
         if (particle.pdg_code()==11 and eng_ini[0]<particle.energy_init()):
             eng_ini[0]=particle.energy_init()
+            multiplicity+=1
         if (particle.pdg_code()==22 and eng_ini[1]<particle.energy_init()):
             eng_ini[1]=particle.energy_init()
+            multiplicity+=1
         if (particle.pdg_code()==13 and eng_ini[2]<particle.energy_init()):
             eng_ini[2]=particle.energy_init()
+            multiplicity+=1
         if (particle.pdg_code()==211 or particle.pdg_code()==-211 and eng_ini[3]<particle.energy_init()):
             eng_ini[3]=particle.energy_init()
+            multiplicity+=1
         if (particle.pdg_code()==2212 and eng_ini[4]<particle.energy_init()):
             eng_ini[4]=particle.energy_init()
-
+            multiplicity+=1
+            
     ctr = 0
     for each in eng_ini:        
         if ctr < 4 :
             fout.write("{:f},".format(float(each)))
         else:
-            fout.write("{:f}".format(float(each)))
+            fout.write("{:f},".format(float(each)))
         ctr+=1
+
+    fout.write("{:f}".format(int(multiplicity)))
     fout.write('\n')
 fout.close()
