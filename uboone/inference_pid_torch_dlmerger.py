@@ -5,12 +5,6 @@ import ROOT
 from larcv import larcv
 import numpy as np
 
-
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="5"
-
-
-
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
 
@@ -57,8 +51,13 @@ def main(IMAGE_FILE,VTX_FILE,OUT_DIR,CFG):
 
     rd = ROOTData()
 
-    NUM = int(os.path.basename(VTX_FILE).split(".")[0].split("_")[-1])
-    FOUT = os.path.join(OUT_DIR,"multipid_out_%04d_pytorch.root" % NUM)
+    #NUM = int(os.path.basename(VTX_FILE).split(".")[0].split("_")[-1])
+    RUN=os.path.basename(VTX_FILE).split('.')[0].split('-')[2].split('n')[1]
+    print RUN
+    SUBRUN=os.path.basename(VTX_FILE).split('.')[0].split('-')[3].split('n')[1]
+    print SUBRUN
+    #FOUT = os.path.join(OUT_DIR,"multipid_out_%04d_pytorch.root" % NUM)
+    FOUT = os.path.join(OUT_DIR,"multipid_out_Run%06d_SubRun%06d_pytorch.root" % (int(RUN), int(SUBRUN)))
     tfile = ROOT.TFile.Open(FOUT,"RECREATE")
     tfile.cd()
     print "OPEN %s"%FOUT
@@ -72,13 +71,12 @@ def main(IMAGE_FILE,VTX_FILE,OUT_DIR,CFG):
     #    
 
     mpid = mpid_net.MPID()
-    mpid.cuda()
+    #mpid.cuda()
 
-
-    #weight_file = ""
-    #exec("weight_file = cfg.weight_file_pid%d" % plane)
-    weight_file= "../weights/saved/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1811_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55954.pwf"
-
+    weight_file = ""
+    plane=2
+    exec("weight_file = cfg.weight_file_mpid_%i" % plane)
+#    weight_file= "../weights/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1811_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55954.pwf"
     mpid.load_state_dict(torch.load(weight_file, map_location=train_device))
     mpid.eval()
     
@@ -140,7 +138,7 @@ def main(IMAGE_FILE,VTX_FILE,OUT_DIR,CFG):
             for plane in xrange(3):
                 print "@plane=%d" % plane
 
-                if not plane==2 : continue
+                #if not plane==2 : continue
                 
                 if pixel2d_par_vv.size() != 0:
                     rd.npar[plane] = 0
@@ -198,12 +196,12 @@ def main(IMAGE_FILE,VTX_FILE,OUT_DIR,CFG):
                 if (img_pix_arr.sum().cpu() < 100):
                     score_pix_v = torch.zeros([5])
                 else:
-                    score_pix_v = nn.Sigmoid()(mpid(img_pix_arr.cuda())).cpu().detach().numpy()[0]                    
+                    score_pix_v = nn.Sigmoid()(mpid(img_pix_arr)).cpu().detach().numpy()[0]                    
 
                 if (img_int_arr.sum().cpu() < 100):
                     score_int_v = torch.zeros([5])
                 else:
-                    score_int_v = nn.Sigmoid()(mpid(img_int_arr.cuda())).cpu().detach().numpy()[0]
+                    score_int_v = nn.Sigmoid()(mpid(img_int_arr)).cpu().detach().numpy()[0]
 
                 '''
                 #Plot the image from pgraph
