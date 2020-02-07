@@ -54,7 +54,7 @@ def make_test_step(model, test_loader, loss_fn, optimizer):
             #print (y,y_prediction)
             #loss = loss_fn(nn.Sigmoid()(y_prediction), y)
             ctr+=1
-            if ctr == 5:
+            if ctr == 10:
                 break
         # Returns the loss
         return tot_loss / float(ctr)
@@ -64,12 +64,12 @@ def make_test_step(model, test_loader, loss_fn, optimizer):
 
 
 
-def validation(model, test_loader, batch_size, device, event_nums):
+def validation(model, test_loader, batch_size, device, num_event, num_class):
     model.eval()
     predicted = 0.0
     total = 0.0
     for batch_idx, (x_batch, y_batch) in enumerate(test_loader):
-        if batch_idx * batch_size > event_nums:
+        if batch_idx * batch_size > num_event:
             break
         x_batch = x_batch.to(device).view((-1,1,512,512))
         y_prediction = nn.Sigmoid()(model(x_batch))
@@ -77,11 +77,11 @@ def validation(model, test_loader, batch_size, device, event_nums):
 
         #print (y_truth, y_prediction)
 
-        ones = torch.ones(batch_size, 5).cuda()
-        zeros = torch.zeros(batch_size, 5).cuda()
+        ones = torch.ones(batch_size, num_class).cuda()
+        zeros = torch.zeros(batch_size, num_class).cuda()
         y_prediction=torch.where(y_prediction >0.5, ones, zeros)
         
         predicted += torch.sum(y_truth.eq(y_prediction).float()).cpu().numpy()
-        total += batch_size * 5
+        total += batch_size * num_class
 
     return float(predicted)/total

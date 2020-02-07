@@ -10,29 +10,22 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]=cfg.GPUID
 
 print(sys.argv)
-blah = sys.argv[1]
+csv_name = sys.argv[1]
 
 #test_file = "/scratch/ruian/training_data/MPID/larcv2/1e1p.root"
 #test_file = "/scratch/ruian/training_data/MPID/larcv2/1mu1p.root"
 #test_file = "/scratch/ruian/training_data/MPID/larcv2/all_1e1p.root"
-#test_file = "/scratch/ruian/training_data/MPID/larcv2/all_1mu1p.root"
+test_file = "/scratch/ruian/training_data/MPID/larcv2/all_1mu1p.root"
 #test_file = "/scratch/ruian/training_data/MPID/larcv2/test.root"
-test_file = "/scratch/ruian/training_data/MPID/larcv2/train.root"
+#test_file = "/scratch/ruian/training_data/MPID/larcv2/train.root"
 
-#weight_file="../weights/mpid_model_20191115-09_19_AM_epoch_40_batch_id_701_title_0.001_AG_GN_final_step_75381.pwf"
-#weight_file="../weights/mpid_model_20191115-09_25_AM_epoch_40_batch_id_1401_title_0.001_AG_GN_final_step_76081.pwf"
-#weight_file="../weights/mpid_model_20191115-08_07_AM_epoch_36_batch_id_1_title_0.001_AG_GN_final_step_67213.pwf"
-#weight_file="../weights/mpid_model_20191115-08_07_AM_epoch_36_batch_id_11_title_0.001_AG_GN_final_step_67223.pwf"
-#weight_file="../weights/mpid_model_20191115-08_05_AM_epoch_35_batch_id_1731_title_0.001_AG_GN_final_step_67076.pwf"
-#weight_file="../weights/mpid_model_20191115-08_06_AM_epoch_35_batch_id_1831_title_0.001_AG_GN_final_step_67176.pwf"
+#weight_file="../weights/saved/"
+weight_file= sys.argv[2]
 
-#weight_file="../weights/saved/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1831_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55974.pwf"
-weight_file="../weights/saved/mpid_model_20191108-12_41_AM_epoch_29_batch_id_1811_title_LR-3_AG_True_new_modi_GN_changes_in_fullyCY_step_55954.pwf"
+csv_name+='_'
+csv_name+=test_file.split('.')[0].split('/')[-1]
 
-blah+='_'
-blah+=test_file.split('.')[0].split('/')[-1]
-
-fout = open('inference_csvs/inference_{}.csv'.format(blah), 'w')
+fout = open('inference_csvs/inference_{}.csv'.format(csv_name), 'w')
 fout.write('entry,label0,label1,label2,label3,label4,score00,score01,score02,score03,score04,eng_ini0,eng_ini1,eng_ini2,eng_ini3,eng_ini4,multiplicity')
 fout.write('\n')
 

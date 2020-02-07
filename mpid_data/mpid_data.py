@@ -61,10 +61,10 @@ class MPID_Dataset(Dataset):
         # Reading Truth Info
         self.particle_mctruth_chain.GetEntry(ENTRY)
         self.this_mctruth_cpp_object = self.particle_mctruth_chain.particle_mctruth_branch
-        self.this_mctruth = torch.zeros([5])
+        self.this_mctruth = torch.zeros([6])
 
         for particle in self.this_mctruth_cpp_object.as_vector():
-            if (particle.pdg_code()==11):
+            if (particle.pdg_code()==11 and particle.energy_init()<=0.2):
                 self.this_mctruth[0]=1
             if (particle.pdg_code()==22):
                 self.this_mctruth[1]=1
@@ -74,6 +74,8 @@ class MPID_Dataset(Dataset):
                 self.this_mctruth[3]=1
             if (particle.pdg_code()==2212):
                 self.this_mctruth[4]=1
+            if (particle.pdg_code()==11 and particle.energy_init()>0.2):
+                self.this_mctruth[5]=1
                                 
         return (self.this_image, self.this_mctruth)
 

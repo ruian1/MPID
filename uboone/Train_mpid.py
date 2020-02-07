@@ -7,7 +7,7 @@ from lib.utility import timestr
 
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
-CFG = os.path.join(BASE_PATH,"../cfg","simple_config_plane_0.cfg")
+CFG = os.path.join(BASE_PATH,"../cfg","simple_config_plane_2.cfg")
 cfg  = config_loader(CFG)
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
@@ -59,7 +59,7 @@ test_file = "/scratch/ruian/training_data/MPID/larcv2/test.root"
 test_data = mpid_data.MPID_Dataset(test_file, "particle_mctruth_tree", "sparse2d_wire_tree", train_device, plane=cfg.plane)
 test_loader = DataLoader(dataset=test_data, batch_size=cfg.batch_size_test, shuffle=True)
 
-mpid = mpid_net.MPID(dropout=cfg.drop_out)
+mpid = mpid_net.MPID(num_classes=cfg.num_class, dropout=cfg.drop_out)
 mpid.cuda()
 
 # Using BCEWithLogitsLoss instead of 
@@ -116,14 +116,14 @@ for epoch in range(EPOCHS):
 
 
         if (batch_idx % cfg.test_every_step == 1 and cfg.run_test):
-            if (cfg.save_weights and epoch >= 25 and epoch <=45):
+            if (cfg.save_weights and epoch >= 20 and epoch <=45):
                 torch.save(mpid.state_dict(), "/scratch/ruian/MPID_pytorch/weights/mpid_model_{}_epoch_{}_batch_id_{}_title_{}_step_{}.pwf".format(timestr(), epoch, batch_idx, title, step))
 
             print ("Start eval on test sample.......@step..{}..@epoch..{}..@batch..{}".format(step,epoch, batch_idx))
-            test_accuracy = mpid_func.validation(mpid, test_loader, cfg.batch_size_test, train_device, event_nums=cfg.test_events_nums)
+            test_accuracy = mpid_func.validation(mpid, test_loader, cfg.batch_size_test, train_device, num_event=cfg.test_events_nums, num_class=cfg.num_class)
             print ("Test Accuray {}".format(test_accuracy))
             print ("Start eval on training sample...@epoch..{}.@batch..{}".format(epoch, batch_idx))
-            train_accuracy = mpid_func.validation(mpid, train_loader, cfg.batch_size_train, train_device, event_nums=cfg.test_events_nums)
+            train_accuracy = mpid_func.validation(mpid, train_loader, cfg.batch_size_train, train_device, num_event=cfg.test_events_nums, num_class=cfg.num_class)
             print ("Train Accuray {}".format(train_accuracy))
             test_loss= test_step(test_loader, train_device)
             print ("Test Loss {}".format(test_loss))
