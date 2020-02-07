@@ -7,7 +7,7 @@ from lib.utility import timestr
 
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
-CFG = os.path.join(BASE_PATH,"../cfg","simple_config_plane_0.cfg")
+CFG = os.path.join(BASE_PATH,"../cfg","simple_config_plane_2.cfg")
 cfg  = config_loader(CFG)
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
