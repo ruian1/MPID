@@ -54,7 +54,7 @@ def make_test_step(model, test_loader, loss_fn, optimizer):
             #print (y,y_prediction)
             #loss = loss_fn(nn.Sigmoid()(y_prediction), y)
             ctr+=1
-            if ctr == 5:
+            if ctr == 10:
                 break
         # Returns the loss
         return tot_loss / float(ctr)
