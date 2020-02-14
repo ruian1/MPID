@@ -133,7 +133,7 @@ def main(IMAGE_FILE,VTX_FILE,OUT_DIR,CFG):
             for plane in xrange(3):
                 print "@plane=%d" % plane
 
-                if not plane==2 : continue
+                #if not plane==2 : continue
                 
                 if pixel2d_par_vv.size() != 0:
                     rd.npar[plane] = 0
