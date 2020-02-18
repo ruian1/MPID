@@ -17,6 +17,12 @@ def make_train_step(model, loss_fn, optimizer):
         #print (score, y)
                 
         # Computes loss
+        '''
+        print ("=================")
+        print (y_prediction)
+        print ('-----------------')
+        print (y)
+        '''
         loss = loss_fn(y_prediction, y)
         #print (y,y_prediction)
         #loss = loss_fn(nn.Sigmoid()(y_prediction), y)

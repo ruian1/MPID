@@ -101,7 +101,7 @@ for epoch in range(EPOCHS):
         
         x_batch = x_batch.to(train_device).view((-1,1,512,512))
         y_batch = y_batch.to(train_device)
-                
+
         loss = train_step(x_batch, y_batch) #model.train() called in train_step
         train_losses.append(loss)
             
