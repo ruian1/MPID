@@ -7,7 +7,7 @@ from lib.utility import timestr
 
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
-CFG = os.path.join(BASE_PATH,"../cfg","simple_config.cfg")
+CFG = os.path.join(BASE_PATH,"../cfg","simple_config_plane_2.cfg")
 cfg  = config_loader(CFG)
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
@@ -116,7 +116,7 @@ for epoch in range(EPOCHS):
 
 
         if (batch_idx % cfg.test_every_step == 1 and cfg.run_test):
-            if (cfg.save_weights):
+            if (cfg.save_weights and epoch >= 25 and epoch <=45):
                 torch.save(mpid.state_dict(), "/scratch/ruian/MPID_pytorch/weights/mpid_model_{}_epoch_{}_batch_id_{}_title_{}_step_{}.pwf".format(timestr(), epoch, batch_idx, title, step))
 
             print ("Start eval on test sample.......@step..{}..@epoch..{}..@batch..{}".format(step,epoch, batch_idx))
